@@ -1,0 +1,23 @@
+trigger:
+  - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  imageName: 'flask-hello-world'
+
+steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.8'
+
+  - script: |
+      echo "Building Docker image..."
+      docker build -t $(imageName) .
+    displayName: 'Build Docker Image'
+
+  - script: |
+      echo "Running Docker container locally (for test)..."
+      docker run -d -p 5000:5000 $(imageName)
+    displayName: 'Run Container Locally'
