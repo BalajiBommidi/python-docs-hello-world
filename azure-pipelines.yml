@@ -2,22 +2,27 @@ trigger:
   - master
 
 pool:
-  name: Default
+  name: Default  # Make sure this pool is mapped to your WSL-based self-hosted agent
 
 variables:
   imageName: 'flask-hello-world'
 
 steps:
-  # - task: UsePythonVersion@0
-  #   inputs:
-  #     versionSpec: '3.8'
+  - script: |
+      echo "Checking Docker status..."
+      docker version
+      docker info
+    displayName: 'Verify Docker Engine'
+    shell: bash
 
   - script: |
       echo "Building Docker image..."
       docker build -t $(imageName) .
     displayName: 'Build Docker Image'
+    shell: bash
 
   - script: |
       echo "Running Docker container locally (for test)..."
       docker run -d -p 5000:5000 $(imageName)
     displayName: 'Run Container Locally'
+    shell: bash
