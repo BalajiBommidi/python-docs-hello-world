@@ -1,25 +1,24 @@
 trigger:
-  - master
+- master
 
 pool:
-  name: Default  # Your self-hosted WSL agent
+  name: Default  # Use your WSL self-hosted agent
 
 variables:
-  imageName: 'flask-hello-world'
+  dockerHubUsername: 'balajibommidi4111@gmail.com'   # 👈 replace with your Docker Hub username
+  imageName: 'flask-hello-app'
 
 steps:
-  - script: |
-      echo "Checking Docker status..."
-      docker version
-      docker info
-    displayName: 'Verify Docker Engine'
+- task: DockerInstaller@0
+  inputs:
+    dockerVersion: 'latest'
 
-  - script: |
-      echo "Building Docker image..."
-      docker build -t $(imageName) .
-    displayName: 'Build Docker Image'
+- script: |
+    docker build -t $(imageName) ./python-docker-demo
+    docker tag $(imageName) $(dockerHubUsername)/$(imageName):latest
+  displayName: 'Build and Tag Docker Image'
 
-  - script: |
-      echo "Running Docker container locally (for test)..."
-      docker run -d -p 5000:5000 $(imageName)
-    displayName: 'Run Container Locally'
+- script: |
+    echo $(DOCKER_PASSWORD) | docker login -u $(dockerHubUsername) --password-stdin
+    docker push $(dockerHubUsername)/$(imageName):latest
+  displayName: 'Push Image to Docker Hub'
