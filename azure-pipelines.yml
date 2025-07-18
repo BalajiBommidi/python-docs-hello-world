@@ -1,15 +1,15 @@
 trigger:
-- master  # You can change to 'main' if that's your branch
+- master  # Change to 'main' if needed
 
 pool:
-  name: Default  # Make sure this matches your self-hosted agent pool
+  name: Default  # Use your WSL self-hosted agent pool name
 
 variables:
-  dockerHubUsername: 'balaji4111'   # ✅ Use your actual Docker Hub username (NOT email)
+  dockerHubUsername: 'balaji4111'   # ✅ Use Docker Hub username (not email)
   imageName: 'flask-hello-app'
 
 steps:
-- task: Checkout@1
+- checkout: self  # ✅ Correct way to check out your repo in YAML
 
 - script: |
     echo "Building and tagging Docker image..."
