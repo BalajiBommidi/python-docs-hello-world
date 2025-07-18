@@ -1,24 +1,24 @@
 trigger:
-- master
+- master  # You can change to 'main' if that's your branch
 
 pool:
-  name: Default  # Use your WSL self-hosted agent
+  name: Default  # Make sure this matches your self-hosted agent pool
 
 variables:
-  dockerHubUsername: 'balajibommidi4111@gmail.com'   # 👈 replace with your Docker Hub username
+  dockerHubUsername: 'balaji4111'   # ✅ Use your actual Docker Hub username (NOT email)
   imageName: 'flask-hello-app'
 
 steps:
-- task: DockerInstaller@0
-  inputs:
-    dockerVersion: 'latest'
+- task: Checkout@1
 
 - script: |
+    echo "Building and tagging Docker image..."
     docker build -t $(imageName) ./python-docker-demo
     docker tag $(imageName) $(dockerHubUsername)/$(imageName):latest
   displayName: 'Build and Tag Docker Image'
 
 - script: |
+    echo "Logging in to Docker Hub and pushing image..."
     echo $(DOCKER_PASSWORD) | docker login -u $(dockerHubUsername) --password-stdin
     docker push $(dockerHubUsername)/$(imageName):latest
   displayName: 'Push Image to Docker Hub'
