@@ -52,4 +52,5 @@ stages:
             --image $(dockerHubUsername)/$(imageName):$(dockerImageTag) \
             --dns-name-label flask-app-balaji-demo \
             --ports 80 \
-            --location eastus
+            --location eastus \
+            --os-type Linux
