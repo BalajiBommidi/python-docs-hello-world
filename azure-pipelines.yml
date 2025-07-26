@@ -54,3 +54,5 @@ stages:
             --ports 80 \
             --location eastus \
             --os-type Linux
+            --cpu 1 \
+            --memory 1.5
