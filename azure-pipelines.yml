@@ -13,7 +13,7 @@ steps:
 
 - script: |
     echo "Building and tagging Docker image..."
-    docker build -t $(imageName) ./python-docker-demo
+    docker build -t $(imageName) ./app.py
     docker tag $(imageName) $(dockerHubUsername)/$(imageName):latest
   displayName: 'Build and Tag Docker Image'
 
