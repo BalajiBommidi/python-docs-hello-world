@@ -1,24 +1,55 @@
 trigger:
-- master  # Change to 'main' if needed
+- master
 
 pool:
-  name: Default  # Use your WSL self-hosted agent pool name
+  name: Default  # self-hosted agent pool
 
 variables:
-  dockerHubUsername: 'balaji4111'   # ✅ Use Docker Hub username (not email)
+  dockerHubUsername: 'balaji4111'
   imageName: 'flask-hello-app'
+  dockerImageTag: 'latest'
 
-steps:
-- checkout: self  # ✅ Correct way to check out your repo in YAML
+stages:
+- stage: BuildAndPush
+  displayName: 'Build and Push Docker Image'
+  jobs:
+  - job: Build
+    displayName: 'Docker Build & Push'
+    steps:
+    - task: Docker@2
+      displayName: 'Login to Docker Hub'
+      inputs:
+        command: 'login'
+        containerRegistry: 'dockerhub-connection'  # Your Docker Hub service connection name in Azure DevOps
 
-- script: |
-    echo "Building and tagging Docker image..."
-    docker build -t $(imageName) ./app.py
-    docker tag $(imageName) $(dockerHubUsername)/$(imageName):latest
-  displayName: 'Build and Tag Docker Image'
+    - task: Docker@2
+      displayName: 'Build and Push Image'
+      inputs:
+        command: 'buildAndPush'
+        repository: '$(dockerHubUsername)/$(imageName)'
+        Dockerfile: '**/Dockerfile'
+        tags: |
+          $(dockerImageTag)
 
-- script: |
-    echo "Logging in to Docker Hub and pushing image..."
-    echo $(DOCKER_PASSWORD) | docker login -u $(dockerHubUsername) --password-stdin
-    docker push $(dockerHubUsername)/$(imageName):latest
-  displayName: 'Push Image to Docker Hub'
+- stage: DeployACI
+  displayName: 'Deploy to Azure Container Instance'
+  dependsOn: BuildAndPush
+  condition: succeeded()
+  jobs:
+  - job: Deploy
+    displayName: 'Deploy to ACI'
+    steps:
+    - task: AzureCLI@2
+      displayName: 'Deploy Container to ACI'
+      inputs:
+        azureSubscription: 'balaji-azure-conn'  # 🔁 Replace this with actual name from Service Connections
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az container create \
+            --resource-group devops-demo-rg \
+            --name flask-container-group \
+            --image $(dockerHubUsername)/$(imageName):$(dockerImageTag) \
+            --dns-name-label flask-app-balaji-demo \
+            --ports 80 \
+            --location eastus
